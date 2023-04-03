@@ -1,24 +1,53 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+import { fetchContacts, addContact, deleteContact } from './operations';
+
+const handlePending = state => {
+  state.isLoading = true;
+};
+const handleRejected = (state, action) => {
+  state.isLoading = false;
+  state.error = action.payload;
+};
+
 const contactsSlice = createSlice({
   // Ім'я слайсу
   name: 'contacts',
   // Початковий стан редюсера слайсу
-  initialState: { items: [] },
-  // Об'єкт редюсерів
-  reducers: {
-    addContact(state, action) {
+  initialState: {
+    items: [],
+    isLoading: false,
+    error: null,
+  },
+
+  extraReducers: {
+    [fetchContacts.pending]: handlePending,
+    [addContact.pending]: handlePending,
+    [deleteContact.pending]: handlePending,
+    [fetchContacts.rejected]: handleRejected,
+    [addContact.rejected]: handleRejected,
+    [deleteContact.rejected]: handleRejected,
+
+    [fetchContacts.fulfilled](state, action) {
+      state.isLoading = false;
+      state.items = action.payload;
+      state.error = null;
+    },
+
+    [addContact.fulfilled](state, action) {
+      state.isLoading = false;
+      state.error = null;
       state.items.push(action.payload);
     },
-    deleteContact(state, action) {
+
+    [deleteContact.fulfilled](state, action) {
+      state.isLoading = false;
+      state.error = null;
       state.items = state.items.filter(
-        contact => contact.id !== action.payload
+        contact => contact.id !== action.payload.id
       );
     },
   },
 });
 
-// Генератори екшенів
-export const { addContact, deleteContact } = contactsSlice.actions;
-// Редюсер слайсу
 export const contactsReducer = contactsSlice.reducer;
